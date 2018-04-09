@@ -47,6 +47,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
     private static final int REQUEST_CODE_CHOOSE = 23;
 
     private UriAdapter mAdapter;
+    private List<Uri> selectedUriList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +80,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
                                             .choose(MimeType.ofAll(), false)
                                             .countable(true)
                                             .capture(true)
+                                            .selectedUri(selectedUriList)
                                             .captureStrategy(
                                                     new CaptureStrategy(true, "com.zhihu.matisse.sample.fileprovider"))
                                             .maxSelectable(9)
@@ -101,6 +103,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
                                     break;
                             }
                             mAdapter.setData(null, null);
+                            selectedUriList = null;
                         } else {
                             Toast.makeText(SampleActivity.this, R.string.permission_request_denied, Toast.LENGTH_LONG)
                                     .show();
@@ -123,7 +126,8 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
-            mAdapter.setData(Matisse.obtainResult(data), Matisse.obtainPathResult(data));
+            selectedUriList = Matisse.obtainResult(data);
+            mAdapter.setData(selectedUriList, Matisse.obtainPathResult(data));
         }
     }
 

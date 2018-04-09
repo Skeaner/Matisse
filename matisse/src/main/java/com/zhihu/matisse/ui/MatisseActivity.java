@@ -49,6 +49,7 @@ import com.zhihu.matisse.internal.ui.SelectedPreviewActivity;
 import com.zhihu.matisse.internal.ui.adapter.AlbumMediaAdapter;
 import com.zhihu.matisse.internal.ui.adapter.AlbumsAdapter;
 import com.zhihu.matisse.internal.ui.widget.AlbumsSpinner;
+import com.zhihu.matisse.internal.utils.ItemUtils;
 import com.zhihu.matisse.internal.utils.MediaStoreCompat;
 import com.zhihu.matisse.internal.utils.PathUtils;
 
@@ -119,6 +120,10 @@ public class MatisseActivity extends AppCompatActivity implements
         mEmptyView = findViewById(R.id.empty_view);
 
         mSelectedCollection.onCreate(savedInstanceState);
+
+        if (mSpec.uriList != null) {
+            mSelectedCollection.setDefaultSelection(ItemUtils.toItemList(mSpec.uriList));
+        }
         updateBottomToolbar();
 
         mAlbumsAdapter = new AlbumsAdapter(this, null, false);

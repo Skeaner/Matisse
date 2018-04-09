@@ -73,6 +73,9 @@ public class SelectedItemCollection {
     }
 
     public void setDefaultSelection(List<Item> uris) {
+        if (uris == null) {
+            throw new NullPointerException("Item List can not be null.");
+        }
         mItems.addAll(uris);
     }
 
@@ -114,7 +117,17 @@ public class SelectedItemCollection {
     }
 
     public boolean remove(Item item) {
-        boolean removed = mItems.remove(item);
+
+        boolean removed = false;
+        Uri itemUri = item.getContentUri();
+        for (Item currentItem : mItems) {
+            if (currentItem.getContentUri().equals(itemUri)) {
+                mItems.remove(currentItem);
+                removed = true;
+                break;
+            }
+        }
+
         if (removed) {
             if (mItems.size() == 0) {
                 mCollectionType = COLLECTION_UNDEFINED;

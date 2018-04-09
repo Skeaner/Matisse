@@ -41,11 +41,11 @@ public class Item implements Parcelable {
     };
     public static final long ITEM_ID_CAPTURE = -1;
     public static final String ITEM_DISPLAY_NAME_CAPTURE = "Capture";
-    public final long id;
-    public final String mimeType;
+    public  long id;
+    public  String mimeType;
     public final Uri uri;
-    public final long size;
-    public final long duration; // only for video, in ms
+    public  long size;
+    public  long duration; // only for video, in ms
 
     private Item(long id, String mimeType, long size, long duration) {
         this.id = id;
@@ -64,6 +64,10 @@ public class Item implements Parcelable {
         this.duration = duration;
     }
 
+    private Item(Uri uri) {
+        this.uri = uri;
+    }
+
     private Item(Parcel source) {
         id = source.readLong();
         mimeType = source.readString();
@@ -77,6 +81,10 @@ public class Item implements Parcelable {
                 cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)),
                 cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns.SIZE)),
                 cursor.getLong(cursor.getColumnIndex("duration")));
+    }
+
+    public static Item valueOf(Uri uri) {
+        return new Item(uri);
     }
 
     @Override

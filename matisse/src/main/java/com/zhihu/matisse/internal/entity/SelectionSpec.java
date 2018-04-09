@@ -17,6 +17,7 @@
 package com.zhihu.matisse.internal.entity;
 
 import android.content.pm.ActivityInfo;
+import android.net.Uri;
 import android.support.annotation.StyleRes;
 
 import com.zhihu.matisse.MimeType;
@@ -30,6 +31,7 @@ import java.util.Set;
 
 public final class SelectionSpec {
 
+    public List<Uri> uriList;
     public Set<MimeType> mimeTypeSet;
     public boolean mediaTypeExclusive;
     public boolean showSingleMediaType;
@@ -62,6 +64,7 @@ public final class SelectionSpec {
     }
 
     private void reset() {
+        uriList = null;
         mimeTypeSet = null;
         mediaTypeExclusive = true;
         showSingleMediaType = false;
