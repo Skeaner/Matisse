@@ -146,7 +146,8 @@ public class MediaSelectionFragment extends Fragment implements
 
     @Override
     public void onAlbumMediaLoad(Cursor cursor) {
-        if (cursor != null && cursor.moveToPosition(1)) {
+        if (mSelectionSpec.captureToMatisse &&
+                cursor != null && cursor.moveToPosition(1)) {
             Item item = Item.valueOf(cursor);
             String imagePath = PathUtils.getPath(getActivity(), item.getContentUri());
             if (imagePath != null && imagePath.equals(mSelectionProvider.getCapturePhotoPath())) {

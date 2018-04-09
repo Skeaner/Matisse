@@ -79,7 +79,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
                                     Matisse.from(SampleActivity.this)
                                             .choose(MimeType.ofAll(), false)
                                             .countable(true)
-                                            .capture(true)
+                                            .capture(true, true)
                                             .selectedUri(selectedUriList)
                                             .captureStrategy(
                                                     new CaptureStrategy(true, "com.zhihu.matisse.sample.fileprovider"))

@@ -104,6 +104,9 @@ public final class SelectionCreator {
      * @param uriList default selected Uri list
      */
     public SelectionCreator selectedUri(@NonNull List<Uri> uriList) {
+        if (!mSelectionSpec.captureToMatisse) {
+            throw new RuntimeException("must set captureToMatisse enable be fore set selectedUri");
+        }
         mSelectionSpec.uriList = uriList;
         return this;
     }
@@ -206,6 +209,13 @@ public final class SelectionCreator {
      */
     public SelectionCreator capture(boolean enable) {
         mSelectionSpec.capture = enable;
+        mSelectionSpec.captureToMatisse = false;
+        return this;
+    }
+
+    public SelectionCreator capture(boolean enable, boolean captureToMatisse) {
+        mSelectionSpec.capture = enable;
+        mSelectionSpec.captureToMatisse = captureToMatisse;
         return this;
     }
 

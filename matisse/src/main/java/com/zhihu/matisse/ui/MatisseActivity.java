@@ -22,6 +22,7 @@ import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -123,7 +124,7 @@ public class MatisseActivity extends AppCompatActivity implements
 
         mSelectedCollection.onCreate(savedInstanceState);
 
-        if (mSpec.uriList != null) {
+        if (mSpec.captureToMatisse && mSpec.uriList != null) {
             mSelectedCollection.setDefaultSelection(ItemUtils.toItemList(mSpec.uriList));
         }
         updateBottomToolbar();
@@ -202,29 +203,31 @@ public class MatisseActivity extends AppCompatActivity implements
                 updateBottomToolbar();
             }
         } else if (requestCode == REQUEST_CODE_CAPTURE) {
-            // Just pass the data back to previous calling Activity.
-            Uri contentUri = mMediaStoreCompat.getCurrentPhotoUri();
             capturePhotoPath = mMediaStoreCompat.getCurrentPhotoPath();
 
-            MediaStoreUtils.galleryAddPic(getApplicationContext(), capturePhotoPath);
-            Fragment mediaSelectionFragment = getSupportFragmentManager().findFragmentByTag(
-                    MediaSelectionFragment.class.getSimpleName());
-            if (mediaSelectionFragment != null && mediaSelectionFragment instanceof MediaSelectionFragment) {
-                ((MediaSelectionFragment) mediaSelectionFragment).reload();
+            if (mSpec.captureToMatisse) { // capture photo then update current fragment
+                MediaStoreUtils.galleryAddPic(getApplicationContext(), capturePhotoPath);
+                Fragment mediaSelectionFragment = getSupportFragmentManager().findFragmentByTag(
+                        MediaSelectionFragment.class.getSimpleName());
+                if (mediaSelectionFragment != null && mediaSelectionFragment instanceof MediaSelectionFragment) {
+                    ((MediaSelectionFragment) mediaSelectionFragment).reload();
+                }
+            } else { // Just pass the data back to previous calling Activity.
+                Uri contentUri = mMediaStoreCompat.getCurrentPhotoUri();
+                ArrayList<Uri> selected = new ArrayList<>();
+                selected.add(contentUri);
+                ArrayList<String> selectedPath = new ArrayList<>();
+                selectedPath.add(capturePhotoPath);
+                Intent result = new Intent();
+                result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selected);
+                result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPath);
+                setResult(RESULT_OK, result);
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+                    MatisseActivity.this.revokeUriPermission(contentUri,
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                finish();
             }
 
-//            ArrayList<Uri> selected = new ArrayList<>();
-//            selected.add(contentUri);
-//            ArrayList<String> selectedPath = new ArrayList<>();
-//            selectedPath.add(capturePhotoPath);
-//            Intent result = new Intent();
-//            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selected);
-//            result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPath);
-//            setResult(RESULT_OK, result);
-//            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-//                MatisseActivity.this.revokeUriPermission(contentUri,
-//                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//            finish();
         }
     }
 
