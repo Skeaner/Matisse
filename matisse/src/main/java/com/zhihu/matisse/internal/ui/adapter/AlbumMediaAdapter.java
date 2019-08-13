@@ -16,6 +16,7 @@
 package com.zhihu.matisse.internal.ui.adapter;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
@@ -27,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
@@ -37,9 +39,7 @@ import com.zhihu.matisse.internal.model.SelectedItemCollection;
 import com.zhihu.matisse.internal.ui.widget.CheckView;
 import com.zhihu.matisse.internal.ui.widget.MediaGrid;
 
-public class AlbumMediaAdapter extends
-        RecyclerViewCursorAdapter<RecyclerView.ViewHolder> implements
-        MediaGrid.OnMediaGridClickListener {
+public class AlbumMediaAdapter extends RecyclerViewCursorAdapter<RecyclerView.ViewHolder> implements MediaGrid.OnMediaGridClickListener {
 
     private static final int VIEW_TYPE_CAPTURE = 0x01;
     private static final int VIEW_TYPE_MEDIA = 0x02;
@@ -71,7 +71,10 @@ public class AlbumMediaAdapter extends
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (v.getContext() instanceof OnPhotoCapture) {
+                    if (mSelectionSpec.countable && mSelectedCollection.maxSelectableReached()) {
+                        String cause = v.getContext().getString(R.string.error_over_count_default);
+                        Toast.makeText(v.getContext(), cause, Toast.LENGTH_SHORT).show();
+                    } else if (v.getContext() instanceof OnPhotoCapture) {
                         ((OnPhotoCapture) v.getContext()).capture();
                     }
                 }
@@ -89,8 +92,7 @@ public class AlbumMediaAdapter extends
         if (holder instanceof CaptureViewHolder) {
             CaptureViewHolder captureViewHolder = (CaptureViewHolder) holder;
             Drawable[] drawables = captureViewHolder.mHint.getCompoundDrawables();
-            TypedArray ta = holder.itemView.getContext().getTheme().obtainStyledAttributes(
-                    new int[]{R.attr.capture_textColor});
+            TypedArray ta = holder.itemView.getContext().getTheme().obtainStyledAttributes(new int[]{R.attr.capture_textColor});
             int color = ta.getColor(0, 0);
             ta.recycle();
 
@@ -113,12 +115,10 @@ public class AlbumMediaAdapter extends
             MediaViewHolder mediaViewHolder = (MediaViewHolder) holder;
 
             final Item item = Item.valueOf(cursor);
-            mediaViewHolder.mMediaGrid.preBindMedia(new MediaGrid.PreBindInfo(
-                    getImageResize(mediaViewHolder.mMediaGrid.getContext()),
-                    mPlaceholder,
-                    mSelectionSpec.countable,
-                    holder
-            ));
+            mediaViewHolder.mMediaGrid.preBindMedia(new MediaGrid.PreBindInfo(getImageResize(mediaViewHolder.mMediaGrid.getContext()),
+                                                                              mPlaceholder,
+                                                                              mSelectionSpec.countable,
+                                                                              holder));
             mediaViewHolder.mMediaGrid.bindMedia(item);
             mediaViewHolder.mMediaGrid.setOnMediaGridClickListener(this);
             setCheckStatus(item, mediaViewHolder.mMediaGrid);
@@ -208,7 +208,6 @@ public class AlbumMediaAdapter extends
         return cause == null;
     }
 
-
     public void registerCheckStateListener(CheckStateListener listener) {
         mCheckStateListener = listener;
     }
@@ -248,8 +247,7 @@ public class AlbumMediaAdapter extends
             RecyclerView.LayoutManager lm = mRecyclerView.getLayoutManager();
             int spanCount = ((GridLayoutManager) lm).getSpanCount();
             int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-            int availableWidth = screenWidth - context.getResources().getDimensionPixelSize(
-                    R.dimen.media_grid_spacing) * (spanCount - 1);
+            int availableWidth = screenWidth - context.getResources().getDimensionPixelSize(R.dimen.media_grid_spacing) * (spanCount - 1);
             mImageResize = availableWidth / spanCount;
             mImageResize = (int) (mImageResize * mSelectionSpec.thumbnailScale);
         }
