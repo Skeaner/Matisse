@@ -18,6 +18,8 @@ package com.zhihu.matisse.internal.ui;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -34,6 +36,7 @@ import com.zhihu.matisse.internal.model.AlbumMediaCollection;
 import com.zhihu.matisse.internal.model.SelectedItemCollection;
 import com.zhihu.matisse.internal.ui.adapter.AlbumMediaAdapter;
 import com.zhihu.matisse.internal.ui.widget.MediaGridInset;
+import com.zhihu.matisse.internal.utils.PathUtils;
 import com.zhihu.matisse.internal.utils.UIUtils;
 
 public class MediaSelectionFragment extends Fragment implements
@@ -41,6 +44,7 @@ public class MediaSelectionFragment extends Fragment implements
         AlbumMediaAdapter.OnMediaClickListener {
 
     public static final String EXTRA_ALBUM = "extra_album";
+    public static final int RELOAD_DELAY_TIME = 300;
 
     private final AlbumMediaCollection mAlbumMediaCollection = new AlbumMediaCollection();
     private RecyclerView mRecyclerView;
@@ -48,6 +52,8 @@ public class MediaSelectionFragment extends Fragment implements
     private SelectionProvider mSelectionProvider;
     private AlbumMediaAdapter.CheckStateListener mCheckStateListener;
     private AlbumMediaAdapter.OnMediaClickListener mOnMediaClickListener;
+    private SelectionSpec mSelectionSpec;
+    private Album mAlbum;
 
     public static MediaSelectionFragment newInstance(Album album) {
         MediaSelectionFragment fragment = new MediaSelectionFragment();
@@ -89,7 +95,7 @@ public class MediaSelectionFragment extends Fragment implements
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Album album = getArguments().getParcelable(EXTRA_ALBUM);
+        mAlbum = getArguments().getParcelable(EXTRA_ALBUM);
 
         mAdapter = new AlbumMediaAdapter(getContext(),
                 mSelectionProvider.provideSelectedItemCollection(), mRecyclerView);
@@ -98,11 +104,11 @@ public class MediaSelectionFragment extends Fragment implements
         mRecyclerView.setHasFixedSize(true);
 
         int spanCount;
-        SelectionSpec selectionSpec = SelectionSpec.getInstance();
-        if (selectionSpec.gridExpectedSize > 0) {
-            spanCount = UIUtils.spanCount(getContext(), selectionSpec.gridExpectedSize);
+        mSelectionSpec = SelectionSpec.getInstance();
+        if (mSelectionSpec.gridExpectedSize > 0) {
+            spanCount = UIUtils.spanCount(getContext(), mSelectionSpec.gridExpectedSize);
         } else {
-            spanCount = selectionSpec.spanCount;
+            spanCount = mSelectionSpec.spanCount;
         }
         mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), spanCount));
 
@@ -110,13 +116,24 @@ public class MediaSelectionFragment extends Fragment implements
         mRecyclerView.addItemDecoration(new MediaGridInset(spanCount, spacing, false));
         mRecyclerView.setAdapter(mAdapter);
         mAlbumMediaCollection.onCreate(getActivity(), this);
-        mAlbumMediaCollection.load(album, selectionSpec.capture);
+        mAlbumMediaCollection.load(mAlbum, mSelectionSpec.capture);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         mAlbumMediaCollection.onDestroy();
+    }
+
+    public void reload() {
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mAlbumMediaCollection.reload(mAlbum, mSelectionSpec.capture);
+            }
+        }, RELOAD_DELAY_TIME);
     }
 
     public void refreshMediaGrid() {
@@ -129,6 +146,15 @@ public class MediaSelectionFragment extends Fragment implements
 
     @Override
     public void onAlbumMediaLoad(Cursor cursor) {
+        if (mSelectionSpec.captureToMatisse &&
+                cursor != null && cursor.moveToPosition(1)) {
+            Item item = Item.valueOf(cursor);
+            String imagePath = PathUtils.getPath(getActivity(), item.getContentUri());
+            if (imagePath != null && imagePath.equals(mSelectionProvider.getCapturePhotoPath())) {
+                mSelectionProvider.selectCaptureImg(item);
+                refreshMediaGrid();
+            }
+        }
         mAdapter.swapCursor(cursor);
     }
 
@@ -155,5 +181,7 @@ public class MediaSelectionFragment extends Fragment implements
 
     public interface SelectionProvider {
         SelectedItemCollection provideSelectedItemCollection();
+        String getCapturePhotoPath();
+        void selectCaptureImg(Item item);
     }
 }

@@ -18,6 +18,7 @@ package com.zhihu.matisse;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -37,6 +38,7 @@ import com.zhihu.matisse.ui.MatisseActivity;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_BEHIND;
@@ -99,6 +101,17 @@ public final class SelectionCreator {
         mSelectionSpec.mimeTypeSet = mimeTypes;
         mSelectionSpec.mediaTypeExclusive = mediaTypeExclusive;
         mSelectionSpec.orientation = SCREEN_ORIENTATION_UNSPECIFIED;
+    }
+
+    /**
+     * @param uriList default selected Uri list
+     */
+    public SelectionCreator selectedUri(@NonNull List<Uri> uriList) {
+        if (!mSelectionSpec.captureToMatisse) {
+            throw new RuntimeException("must set captureToMatisse enable be fore set selectedUri");
+        }
+        mSelectionSpec.uriList = uriList;
+        return this;
     }
 
     /**
@@ -199,6 +212,13 @@ public final class SelectionCreator {
      */
     public SelectionCreator capture(boolean enable) {
         mSelectionSpec.capture = enable;
+        mSelectionSpec.captureToMatisse = false;
+        return this;
+    }
+
+    public SelectionCreator capture(boolean enable, boolean captureToMatisse) {
+        mSelectionSpec.capture = enable;
+        mSelectionSpec.captureToMatisse = captureToMatisse;
         return this;
     }
 
