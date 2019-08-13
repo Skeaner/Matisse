@@ -44,3 +44,4 @@ captures/
 
 # Keystore files
 *.jks
+matisse/bintray.properties
