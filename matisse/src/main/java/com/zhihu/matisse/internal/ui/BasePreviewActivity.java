@@ -28,8 +28,10 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zhihu.matisse.R;
+import com.zhihu.matisse.edit.IMGEditActivity;
 import com.zhihu.matisse.internal.entity.IncapableCause;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
@@ -42,8 +44,10 @@ import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 import com.zhihu.matisse.internal.utils.Platform;
 import com.zhihu.matisse.listener.OnFragmentInteractionListener;
 
-public abstract class BasePreviewActivity extends AppCompatActivity implements View.OnClickListener,
-        ViewPager.OnPageChangeListener, OnFragmentInteractionListener {
+import java.io.File;
+import java.util.UUID;
+
+public abstract class BasePreviewActivity extends AppCompatActivity implements View.OnClickListener, ViewPager.OnPageChangeListener, OnFragmentInteractionListener {
 
     public static final String EXTRA_DEFAULT_BUNDLE = "extra_default_bundle";
     public static final String EXTRA_RESULT_BUNDLE = "extra_result_bundle";
@@ -60,6 +64,7 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
     protected CheckView mCheckView;
     protected TextView mButtonBack;
     protected TextView mButtonApply;
+    protected TextView mButtonEdit;
     protected TextView mSize;
 
     protected int mPreviousPos = -1;
@@ -100,10 +105,14 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         }
         mButtonBack = (TextView) findViewById(R.id.button_back);
         mButtonApply = (TextView) findViewById(R.id.button_apply);
+        mButtonEdit = findViewById(R.id.button_edit);
         mSize = (TextView) findViewById(R.id.size);
         mButtonBack.setOnClickListener(this);
         mButtonApply.setOnClickListener(this);
-
+        mButtonEdit.setOnClickListener(this);
+        if (mSpec.editable) {
+            mButtonEdit.setVisibility(View.VISIBLE);
+        }
         mPager = (ViewPager) findViewById(R.id.pager);
         mPager.addOnPageChangeListener(this);
         mAdapter = new PreviewPagerAdapter(getSupportFragmentManager(), null);
@@ -138,12 +147,10 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
                 updateApplyButton();
 
                 if (mSpec.onSelectedListener != null) {
-                    mSpec.onSelectedListener.onSelected(
-                            mSelectedCollection.asListOfUri(), mSelectedCollection.asListOfString());
+                    mSpec.onSelectedListener.onSelected(mSelectedCollection.asListOfUri(), mSelectedCollection.asListOfString());
                 }
             }
         });
-
 
         mOriginalLayout = findViewById(R.id.originalLayout);
         mOriginal = findViewById(R.id.original);
@@ -154,9 +161,10 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
                 int count = countOverMaxSize();
                 if (count > 0) {
                     IncapableDialog incapableDialog = IncapableDialog.newInstance("",
-                            getString(R.string.error_over_original_count, count, mSpec.originalMaxSize));
-                    incapableDialog.show(getSupportFragmentManager(),
-                            IncapableDialog.class.getName());
+                                                                                  getString(R.string.error_over_original_count,
+                                                                                            count,
+                                                                                            mSpec.originalMaxSize));
+                    incapableDialog.show(getSupportFragmentManager(), IncapableDialog.class.getName());
                     return;
                 }
 
@@ -165,7 +173,6 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
                 if (!mOriginalEnable) {
                     mOriginal.setColor(Color.WHITE);
                 }
-
 
                 if (mSpec.onCheckedListener != null) {
                     mSpec.onCheckedListener.onCheck(mOriginalEnable);
@@ -196,6 +203,14 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         } else if (v.getId() == R.id.button_apply) {
             sendBackResult(true);
             finish();
+        } else if (v.getId() == R.id.button_edit) {
+            Item item = mAdapter.getMediaItem(mPager.getCurrentItem());
+            if (!item.isImage()) {
+                Toast.makeText(this, "只支持图片编辑", Toast.LENGTH_SHORT).show();
+            } else {
+                File mImageFile = new File(getCacheDir(), UUID.randomUUID().toString() + ".jpg");
+                IMGEditActivity.startForResult(this, item.uri, mImageFile.getAbsolutePath(), 1);
+            }
         }
     }
 
@@ -206,23 +221,17 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         }
 
         if (mIsToolbarHide) {
-            mTopToolbar.animate()
-                    .setInterpolator(new FastOutSlowInInterpolator())
-                    .translationYBy(mTopToolbar.getMeasuredHeight())
-                    .start();
+            mTopToolbar.animate().setInterpolator(new FastOutSlowInInterpolator()).translationYBy(mTopToolbar.getMeasuredHeight()).start();
             mBottomToolbar.animate()
-                    .translationYBy(-mBottomToolbar.getMeasuredHeight())
-                    .setInterpolator(new FastOutSlowInInterpolator())
-                    .start();
+                          .translationYBy(-mBottomToolbar.getMeasuredHeight())
+                          .setInterpolator(new FastOutSlowInInterpolator())
+                          .start();
         } else {
-            mTopToolbar.animate()
-                    .setInterpolator(new FastOutSlowInInterpolator())
-                    .translationYBy(-mTopToolbar.getMeasuredHeight())
-                    .start();
+            mTopToolbar.animate().setInterpolator(new FastOutSlowInInterpolator()).translationYBy(-mTopToolbar.getMeasuredHeight()).start();
             mBottomToolbar.animate()
-                    .setInterpolator(new FastOutSlowInInterpolator())
-                    .translationYBy(mBottomToolbar.getMeasuredHeight())
-                    .start();
+                          .setInterpolator(new FastOutSlowInInterpolator())
+                          .translationYBy(mBottomToolbar.getMeasuredHeight())
+                          .start();
         }
 
         mIsToolbarHide = !mIsToolbarHide;
@@ -289,7 +298,6 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         }
     }
 
-
     private void updateOriginalState() {
         mOriginal.setChecked(mOriginalEnable);
         if (!mOriginalEnable) {
@@ -300,9 +308,9 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
 
             if (mOriginalEnable) {
                 IncapableDialog incapableDialog = IncapableDialog.newInstance("",
-                        getString(R.string.error_over_original_size, mSpec.originalMaxSize));
-                incapableDialog.show(getSupportFragmentManager(),
-                        IncapableDialog.class.getName());
+                                                                              getString(R.string.error_over_original_size,
+                                                                                        mSpec.originalMaxSize));
+                incapableDialog.show(getSupportFragmentManager(), IncapableDialog.class.getName());
 
                 mOriginal.setChecked(false);
                 mOriginal.setColor(Color.WHITE);
@@ -310,7 +318,6 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
             }
         }
     }
-
 
     private int countOverMaxSize() {
         int count = 0;

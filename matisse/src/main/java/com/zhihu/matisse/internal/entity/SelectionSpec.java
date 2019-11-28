@@ -57,7 +57,8 @@ public final class SelectionSpec {
     public boolean autoHideToobar;
     public int originalMaxSize;
     public OnCheckedListener onCheckedListener;
-	public boolean captureToMatisse;
+    public boolean captureToMatisse;
+    public boolean editable;
 
     private SelectionSpec() {
     }
@@ -94,7 +95,8 @@ public final class SelectionSpec {
         originalable = false;
         autoHideToobar = false;
         originalMaxSize = Integer.MAX_VALUE;
-		captureToMatisse = false;
+        captureToMatisse = false;
+        editable = false;
     }
 
     public boolean singleSelectionModeEnabled() {

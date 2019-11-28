@@ -35,4 +35,5 @@
     <string name="button_original">原圖</string>
     <string name="button_sure_default">确定</string>
     <string name="button_sure">确定(%1$d)</string>
+    <string name="button_edit">編輯</string>
 </resources>

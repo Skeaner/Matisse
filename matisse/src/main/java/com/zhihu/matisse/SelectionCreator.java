@@ -67,8 +67,7 @@ public final class SelectionCreator {
     private final SelectionSpec mSelectionSpec;
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-    @IntDef({
-            SCREEN_ORIENTATION_UNSPECIFIED,
+    @IntDef({SCREEN_ORIENTATION_UNSPECIFIED,
             SCREEN_ORIENTATION_LANDSCAPE,
             SCREEN_ORIENTATION_PORTRAIT,
             SCREEN_ORIENTATION_USER,
@@ -83,8 +82,7 @@ public final class SelectionCreator {
             SCREEN_ORIENTATION_USER_LANDSCAPE,
             SCREEN_ORIENTATION_USER_PORTRAIT,
             SCREEN_ORIENTATION_FULL_USER,
-            SCREEN_ORIENTATION_LOCKED
-    })
+            SCREEN_ORIENTATION_LOCKED})
     @Retention(RetentionPolicy.SOURCE)
     @interface ScreenOrientation {
     }
@@ -162,8 +160,7 @@ public final class SelectionCreator {
      * @return {@link SelectionCreator} for fluent API.
      */
     public SelectionCreator maxSelectable(int maxSelectable) {
-        if (maxSelectable < 1)
-            throw new IllegalArgumentException("maxSelectable must be greater than or equal to one");
+        if (maxSelectable < 1) throw new IllegalArgumentException("maxSelectable must be greater than or equal to one");
         if (mSelectionSpec.maxImageSelectable > 0 || mSelectionSpec.maxVideoSelectable > 0)
             throw new IllegalStateException("already set maxImageSelectable and maxVideoSelectable");
         mSelectionSpec.maxSelectable = maxSelectable;
@@ -176,7 +173,7 @@ public final class SelectionCreator {
      *
      * @param maxImageSelectable Maximum selectable count for image.
      * @param maxVideoSelectable Maximum selectable count for video.
-     * @return  {@link SelectionCreator} for fluent API.
+     * @return {@link SelectionCreator} for fluent API.
      */
     public SelectionCreator maxSelectablePerMediaType(int maxImageSelectable, int maxVideoSelectable) {
         if (maxImageSelectable < 1 || maxVideoSelectable < 1)
@@ -233,9 +230,9 @@ public final class SelectionCreator {
         return this;
     }
 
-
     /**
      * Determines Whether to hide top and bottom toolbar in PreView mode ,when user tap the picture
+     *
      * @param enable
      * @return {@link SelectionCreator} for fluent API.
      */
@@ -315,8 +312,7 @@ public final class SelectionCreator {
      * @return {@link SelectionCreator} for fluent API.
      */
     public SelectionCreator thumbnailScale(float scale) {
-        if (scale <= 0f || scale > 1f)
-            throw new IllegalArgumentException("Thumbnail scale must be between (0.0, 1.0]");
+        if (scale <= 0f || scale > 1f) throw new IllegalArgumentException("Thumbnail scale must be between (0.0, 1.0]");
         mSelectionSpec.thumbnailScale = scale;
         return this;
     }
@@ -360,6 +356,11 @@ public final class SelectionCreator {
      */
     public SelectionCreator setOnCheckedListener(@Nullable OnCheckedListener listener) {
         mSelectionSpec.onCheckedListener = listener;
+        return this;
+    }
+
+    public SelectionCreator editable(boolean editable) {
+        mSelectionSpec.editable = editable;
         return this;
     }
 
