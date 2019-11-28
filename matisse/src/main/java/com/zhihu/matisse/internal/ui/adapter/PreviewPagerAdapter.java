@@ -15,9 +15,11 @@
  */
 package com.zhihu.matisse.internal.ui.adapter;
 
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
 import com.zhihu.matisse.internal.entity.Item;
@@ -26,7 +28,7 @@ import com.zhihu.matisse.internal.ui.PreviewItemFragment;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PreviewPagerAdapter extends FragmentPagerAdapter {
+public class PreviewPagerAdapter extends FragmentStatePagerAdapter {
 
     private ArrayList<Item> mItems = new ArrayList<>();
     private OnPrimaryItemSetListener mListener;
@@ -39,6 +41,11 @@ public class PreviewPagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int position) {
         return PreviewItemFragment.newInstance(mItems.get(position));
+    }
+
+    @Override
+    public int getItemPosition(@NonNull Object object) {
+        return POSITION_NONE;
     }
 
     @Override
@@ -56,6 +63,14 @@ public class PreviewPagerAdapter extends FragmentPagerAdapter {
 
     public Item getMediaItem(int position) {
         return mItems.get(position);
+    }
+
+    public void add(Item item) {
+        mItems.add(item);
+    }
+
+    public void add(int pos, Item item) {
+        mItems.add(pos, item);
     }
 
     public void addAll(List<Item> items) {

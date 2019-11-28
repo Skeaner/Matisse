@@ -18,8 +18,10 @@ package com.zhihu.matisse.internal.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AppCompatActivity;
@@ -40,12 +42,12 @@ import com.zhihu.matisse.internal.ui.adapter.PreviewPagerAdapter;
 import com.zhihu.matisse.internal.ui.widget.CheckRadioView;
 import com.zhihu.matisse.internal.ui.widget.CheckView;
 import com.zhihu.matisse.internal.ui.widget.IncapableDialog;
+import com.zhihu.matisse.internal.utils.PathUtils;
 import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 import com.zhihu.matisse.internal.utils.Platform;
 import com.zhihu.matisse.listener.OnFragmentInteractionListener;
 
 import java.io.File;
-import java.util.UUID;
 
 public abstract class BasePreviewActivity extends AppCompatActivity implements View.OnClickListener, ViewPager.OnPageChangeListener, OnFragmentInteractionListener {
 
@@ -54,6 +56,8 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
     public static final String EXTRA_RESULT_APPLY = "extra_result_apply";
     public static final String EXTRA_RESULT_ORIGINAL_ENABLE = "extra_result_original_enable";
     public static final String CHECK_STATE = "checkState";
+
+    private static final int REQUEST_CODE_EDIT = 99;
 
     protected final SelectedItemCollection mSelectedCollection = new SelectedItemCollection(this);
     protected SelectionSpec mSpec;
@@ -184,6 +188,43 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_EDIT && resultCode == RESULT_OK) {
+          //取消选中旧的
+            Item oldItem = mAdapter.getMediaItem(mPager.getCurrentItem());
+            if (mSelectedCollection.isSelected(oldItem)) {
+                mSelectedCollection.remove(oldItem);
+                if (mSpec.countable) {
+                    mCheckView.setCheckedNum(CheckView.UNCHECKED);
+                } else {
+                    mCheckView.setChecked(false);
+                }
+            }
+            finish();
+//            //选中新的
+//            String path = data.getStringExtra(IMGEditActivity.EXTRA_IMAGE_SAVE_PATH);
+//            Uri uri = FileProvider.getUriForFile(this, mSpec.captureStrategy.authority, new File(path));
+//            Item newItem = Item.valueOf(uri);
+//            mSelectedCollection.add(newItem);
+//            mAdapter.add(0, newItem);
+//            mAdapter.notifyDataSetChanged();
+//            mPager.setCurrentItem(0);
+//            if (mSpec.countable) {
+//                mCheckView.setCheckedNum(mSelectedCollection.checkedNumOf(newItem));
+//            } else {
+//                mCheckView.setChecked(true);
+//            }
+//
+//            updateApplyButton();
+
+//            if (mSpec.onSelectedListener != null) {
+//                mSpec.onSelectedListener.onSelected(mSelectedCollection.asListOfUri(), mSelectedCollection.asListOfString());
+//            }
+        }
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         mSelectedCollection.onSaveInstanceState(outState);
         outState.putBoolean("checkState", mOriginalEnable);
@@ -206,10 +247,22 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         } else if (v.getId() == R.id.button_edit) {
             Item item = mAdapter.getMediaItem(mPager.getCurrentItem());
             if (!item.isImage()) {
-                Toast.makeText(this, "只支持图片编辑", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "只支持编辑图片", Toast.LENGTH_SHORT).show();
             } else {
-                File mImageFile = new File(getCacheDir(), UUID.randomUUID().toString() + ".jpg");
-                IMGEditActivity.startForResult(this, item.uri, mImageFile.getAbsolutePath(), 1);
+                String path = PathUtils.getPath(this, item.uri);
+                File originalFile = new File(path);
+                String name = originalFile.getName();
+                int indexDot = name.lastIndexOf(".");
+                if (indexDot > 0) {
+                    name = name.substring(0, indexDot);
+                }
+                int additionTagIndex = 1;
+                File newImageFile = new File(originalFile.getParent(), name + "(" + additionTagIndex + ").jpg");
+                while (newImageFile.exists()) {
+                    additionTagIndex++;
+                    newImageFile = new File(originalFile.getParent(), name + "(" + additionTagIndex + ").jpg");
+                }
+                IMGEditActivity.startForResult(this, item.uri, newImageFile.getAbsolutePath(), REQUEST_CODE_EDIT);
             }
         }
     }

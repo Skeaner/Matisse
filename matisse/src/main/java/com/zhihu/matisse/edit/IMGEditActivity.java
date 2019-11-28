@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
 import com.zhihu.matisse.edit.core.IMGMode;
@@ -15,6 +16,7 @@ import com.zhihu.matisse.edit.core.file.IMGDecoder;
 import com.zhihu.matisse.edit.core.file.IMGContentDecoder;
 import com.zhihu.matisse.edit.core.file.IMGFileDecoder;
 import com.zhihu.matisse.edit.core.util.IMGUtils;
+import com.zhihu.matisse.internal.utils.MediaStoreUtils;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -26,6 +28,7 @@ import java.io.IOException;
 
 public class IMGEditActivity extends IMGEditBaseActivity {
 
+
     private static final int MAX_WIDTH = 1024;
 
     private static final int MAX_HEIGHT = 1024;
@@ -33,6 +36,8 @@ public class IMGEditActivity extends IMGEditBaseActivity {
     public static final String EXTRA_IMAGE_URI = "IMAGE_URI";
 
     public static final String EXTRA_IMAGE_SAVE_PATH = "IMAGE_SAVE_PATH";
+
+    public static final String ACTION_RELOAD_FRAGMENT  = "ACTION_RELOAD_FRAGMENT";
 
     public static void startForResult(Activity activity, Uri imageUri, String savePath, int requestCode) {
         Intent intent = new Intent(activity, IMGEditActivity.class).putExtra(IMGEditActivity.EXTRA_IMAGE_URI, imageUri)
@@ -152,8 +157,14 @@ public class IMGEditActivity extends IMGEditBaseActivity {
                 try {
                     fout = new FileOutputStream(path);
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fout);
+                    MediaStoreUtils.galleryAddPic(getApplicationContext(), path);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(ACTION_RELOAD_FRAGMENT));
+                    setResult(RESULT_OK, new Intent().putExtra(EXTRA_IMAGE_SAVE_PATH, path));
+                    finish();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
+                    setResult(RESULT_CANCELED);
+                    finish();
                 } finally {
                     if (fout != null) {
                         try {
@@ -163,13 +174,13 @@ public class IMGEditActivity extends IMGEditBaseActivity {
                         }
                     }
                 }
-                setResult(RESULT_OK);
-                finish();
                 return;
             }
         }
-        setResult(RESULT_CANCELED);
-        finish();
+        else {
+            setResult(RESULT_CANCELED);
+            finish();
+        }
     }
 
     @Override
