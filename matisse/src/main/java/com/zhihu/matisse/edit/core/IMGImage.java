@@ -133,9 +133,9 @@ public class IMGImage {
         // Doodle&Mosaic 's paint
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(IMGPath.BASE_DOODLE_WIDTH);
+        mPaint.setStrokeWidth(IMGPath.baseDoodleWidth);
         mPaint.setColor(Color.RED);
-        mPaint.setPathEffect(new CornerPathEffect(IMGPath.BASE_DOODLE_WIDTH));
+        mPaint.setPathEffect(new CornerPathEffect(IMGPath.baseDoodleWidth));
         mPaint.setStrokeCap(Paint.Cap.ROUND);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
     }

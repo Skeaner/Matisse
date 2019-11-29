@@ -191,7 +191,7 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_EDIT && resultCode == RESULT_OK) {
-          //取消选中旧的
+            //取消选中旧的
             Item oldItem = mAdapter.getMediaItem(mPager.getCurrentItem());
             if (mSelectedCollection.isSelected(oldItem)) {
                 mSelectedCollection.remove(oldItem);
@@ -201,6 +201,10 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
                     mCheckView.setChecked(false);
                 }
             }
+//            if (mSpec.onSelectedListener != null) {
+//                mSpec.onSelectedListener.onSelected(mSelectedCollection.asListOfUri(), mSelectedCollection.asListOfString());
+//            }
+            sendBackResult(false);
             finish();
 //            //选中新的
 //            String path = data.getStringExtra(IMGEditActivity.EXTRA_IMAGE_SAVE_PATH);
@@ -249,20 +253,7 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
             if (!item.isImage()) {
                 Toast.makeText(this, "只支持编辑图片", Toast.LENGTH_SHORT).show();
             } else {
-                String path = PathUtils.getPath(this, item.uri);
-                File originalFile = new File(path);
-                String name = originalFile.getName();
-                int indexDot = name.lastIndexOf(".");
-                if (indexDot > 0) {
-                    name = name.substring(0, indexDot);
-                }
-                int additionTagIndex = 1;
-                File newImageFile = new File(originalFile.getParent(), name + "(" + additionTagIndex + ").jpg");
-                while (newImageFile.exists()) {
-                    additionTagIndex++;
-                    newImageFile = new File(originalFile.getParent(), name + "(" + additionTagIndex + ").jpg");
-                }
-                IMGEditActivity.startForResult(this, item.uri, newImageFile.getAbsolutePath(), REQUEST_CODE_EDIT);
+                IMGEditActivity.startForResult(this, item.uri, REQUEST_CODE_EDIT);
             }
         }
     }

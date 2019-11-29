@@ -92,7 +92,6 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaCollec
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.recyclerview);
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(receiver, new IntentFilter(IMGEditActivity.ACTION_RELOAD_FRAGMENT));
     }
 
     @Override
@@ -123,13 +122,11 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaCollec
 
     @Override
     public void onDestroyView() {
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(receiver);
         super.onDestroyView();
         mAlbumMediaCollection.onDestroy();
     }
 
     public void reload() {
-
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
             @Override
@@ -156,6 +153,10 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaCollec
                 mSelectionProvider.selectCaptureImg(item);
                 refreshMediaGrid();
             }
+            if (imagePath != null && imagePath.equals(mSelectionProvider.getEditPhotoPath())) {
+                mSelectionProvider.selectEditImg(item);
+                refreshMediaGrid();
+            }
         }
         mAdapter.swapCursor(cursor);
     }
@@ -180,18 +181,25 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaCollec
         }
     }
 
+    @Override
+    public void onMediaEditClick(Album album, Item item, int adapterPosition) {
+        if (mOnMediaClickListener != null) {
+            mOnMediaClickListener.onMediaEditClick((Album) getArguments().getParcelable(EXTRA_ALBUM), item, adapterPosition);
+        }
+    }
+
     public interface SelectionProvider {
         SelectedItemCollection provideSelectedItemCollection();
 
         String getCapturePhotoPath();
 
         void selectCaptureImg(Item item);
+
+
+        String getEditPhotoPath();
+
+        void selectEditImg(Item item);
     }
 
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            reload();
-        }
-    };
+
 }

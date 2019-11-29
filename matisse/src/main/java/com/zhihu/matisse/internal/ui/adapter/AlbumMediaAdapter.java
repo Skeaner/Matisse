@@ -22,8 +22,10 @@ import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -119,7 +121,7 @@ public class AlbumMediaAdapter extends RecyclerViewCursorAdapter<RecyclerView.Vi
                                                                               mPlaceholder,
                                                                               mSelectionSpec.countable,
                                                                               holder));
-            mediaViewHolder.mMediaGrid.bindMedia(item);
+            mediaViewHolder.mMediaGrid.bindMedia(item, mSelectionSpec.editable);
             mediaViewHolder.mMediaGrid.setOnMediaGridClickListener(this);
             setCheckStatus(item, mediaViewHolder.mMediaGrid);
         }
@@ -161,6 +163,13 @@ public class AlbumMediaAdapter extends RecyclerViewCursorAdapter<RecyclerView.Vi
     public void onThumbnailClicked(ImageView thumbnail, Item item, RecyclerView.ViewHolder holder) {
         if (mOnMediaClickListener != null) {
             mOnMediaClickListener.onMediaClick(null, item, holder.getAdapterPosition());
+        }
+    }
+
+    @Override
+    public void onEditViewClicked(ImageView thumbnail, final Item item, final RecyclerView.ViewHolder holder) {
+        if (mOnMediaClickListener != null) {
+            mOnMediaClickListener.onMediaEditClick(null, item, holder.getAdapterPosition());
         }
     }
 
@@ -260,6 +269,8 @@ public class AlbumMediaAdapter extends RecyclerViewCursorAdapter<RecyclerView.Vi
 
     public interface OnMediaClickListener {
         void onMediaClick(Album album, Item item, int adapterPosition);
+
+        void onMediaEditClick(Album album, Item item, int adapterPosition);
     }
 
     public interface OnPhotoCapture {

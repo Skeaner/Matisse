@@ -1,6 +1,7 @@
 package com.zhihu.matisse.edit;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,14 +11,16 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
 import com.zhihu.matisse.edit.core.IMGMode;
+import com.zhihu.matisse.edit.core.IMGPath;
 import com.zhihu.matisse.edit.core.IMGText;
 import com.zhihu.matisse.edit.core.file.IMGAssetFileDecoder;
 import com.zhihu.matisse.edit.core.file.IMGDecoder;
 import com.zhihu.matisse.edit.core.file.IMGContentDecoder;
 import com.zhihu.matisse.edit.core.file.IMGFileDecoder;
 import com.zhihu.matisse.edit.core.util.IMGUtils;
-import com.zhihu.matisse.internal.utils.MediaStoreUtils;
+import com.zhihu.matisse.internal.utils.PathUtils;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,7 +31,6 @@ import java.io.IOException;
 
 public class IMGEditActivity extends IMGEditBaseActivity {
 
-
     private static final int MAX_WIDTH = 1024;
 
     private static final int MAX_HEIGHT = 1024;
@@ -37,18 +39,39 @@ public class IMGEditActivity extends IMGEditBaseActivity {
 
     public static final String EXTRA_IMAGE_SAVE_PATH = "IMAGE_SAVE_PATH";
 
-    public static final String ACTION_RELOAD_FRAGMENT  = "ACTION_RELOAD_FRAGMENT";
+    public static final String ACTION_RELOAD_FRAGMENT = "ACTION_RELOAD_FRAGMENT";
 
-    public static void startForResult(Activity activity, Uri imageUri, String savePath, int requestCode) {
+    private Uri imageUri;
+
+    public static void startForResult(Activity activity, Uri imageUri, int requestCode) {
+        String savePath = createSavePath(activity, imageUri);
         Intent intent = new Intent(activity, IMGEditActivity.class).putExtra(IMGEditActivity.EXTRA_IMAGE_URI, imageUri)
                                                                    .putExtra(IMGEditActivity.EXTRA_IMAGE_SAVE_PATH, savePath);
         activity.startActivityForResult(intent, requestCode);
     }
 
-    public static void startForResult(Fragment fragment, Uri imageUri, String savePath, int requestCode) {
+    public static void startForResult(Fragment fragment, Uri imageUri, int requestCode) {
+        String savePath = createSavePath(fragment.getContext(), imageUri);
         Intent intent = new Intent(fragment.getContext(), IMGEditActivity.class).putExtra(IMGEditActivity.EXTRA_IMAGE_URI, imageUri)
                                                                                 .putExtra(IMGEditActivity.EXTRA_IMAGE_SAVE_PATH, savePath);
         fragment.startActivityForResult(intent, requestCode);
+    }
+
+    private static String createSavePath(Context context, Uri uri) {
+        String path = PathUtils.getPath(context, uri);
+        File originalFile = new File(path);
+        String name = originalFile.getName();
+        int indexDot = name.lastIndexOf(".");
+        if (indexDot > 0) {
+            name = name.substring(0, indexDot);
+        }
+        int additionTagIndex = 1;
+        File newImageFile = new File(originalFile.getParent(), name + "(" + additionTagIndex + ").jpg");
+        while (newImageFile.exists()) {
+            additionTagIndex++;
+            newImageFile = new File(originalFile.getParent(), name + "(" + additionTagIndex + ").jpg");
+        }
+        return newImageFile.getAbsolutePath();
     }
 
     @Override
@@ -63,24 +86,24 @@ public class IMGEditActivity extends IMGEditBaseActivity {
             return null;
         }
 
-        Uri uri = intent.getParcelableExtra(EXTRA_IMAGE_URI);
-        if (uri == null) {
+        imageUri = intent.getParcelableExtra(EXTRA_IMAGE_URI);
+        if (imageUri == null) {
             return null;
         }
 
         IMGDecoder decoder = null;
 
-        String path = uri.getPath();
+        String path = imageUri.getPath();
         if (!TextUtils.isEmpty(path)) {
-            switch (uri.getScheme()) {
+            switch (imageUri.getScheme()) {
                 case "asset":
-                    decoder = new IMGAssetFileDecoder(this, uri);
+                    decoder = new IMGAssetFileDecoder(this, imageUri);
                     break;
                 case "file":
-                    decoder = new IMGFileDecoder(uri);
+                    decoder = new IMGFileDecoder(imageUri);
                     break;
                 case "content":
-                    decoder = new IMGContentDecoder(this, uri);
+                    decoder = new IMGContentDecoder(this, imageUri);
                     break;
             }
         }
@@ -109,6 +132,8 @@ public class IMGEditActivity extends IMGEditBaseActivity {
         if (bitmap == null) {
             return null;
         }
+
+        IMGPath.baseDoodleWidth = bitmap.getWidth() / 80f;
 
         return bitmap;
     }
@@ -157,9 +182,10 @@ public class IMGEditActivity extends IMGEditBaseActivity {
                 try {
                     fout = new FileOutputStream(path);
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fout);
-                    MediaStoreUtils.galleryAddPic(getApplicationContext(), path);
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(ACTION_RELOAD_FRAGMENT));
-                    setResult(RESULT_OK, new Intent().putExtra(EXTRA_IMAGE_SAVE_PATH, path));
+                    Intent broadcast = new Intent(ACTION_RELOAD_FRAGMENT).putExtra(EXTRA_IMAGE_SAVE_PATH, path)
+                                                                         .putExtra(EXTRA_IMAGE_URI, imageUri);
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
+                    setResult(RESULT_OK, broadcast);
                     finish();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
@@ -176,8 +202,7 @@ public class IMGEditActivity extends IMGEditBaseActivity {
                 }
                 return;
             }
-        }
-        else {
+        } else {
             setResult(RESULT_CANCELED);
             finish();
         }

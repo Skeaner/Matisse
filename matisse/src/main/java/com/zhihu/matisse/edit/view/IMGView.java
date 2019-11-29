@@ -63,9 +63,9 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
     {
         // 涂鸦画刷
         mDoodlePaint.setStyle(Paint.Style.STROKE);
-        mDoodlePaint.setStrokeWidth(IMGPath.BASE_DOODLE_WIDTH);
+        mDoodlePaint.setStrokeWidth(IMGPath.baseDoodleWidth);
         mDoodlePaint.setColor(Color.RED);
-        mDoodlePaint.setPathEffect(new CornerPathEffect(IMGPath.BASE_DOODLE_WIDTH));
+        mDoodlePaint.setPathEffect(new CornerPathEffect(IMGPath.baseDoodleWidth));
         mDoodlePaint.setStrokeCap(Paint.Cap.ROUND);
         mDoodlePaint.setStrokeJoin(Paint.Join.ROUND);
 
@@ -228,7 +228,7 @@ public class IMGView extends FrameLayout implements Runnable, ScaleGestureDetect
         mImage.onDrawDoodles(canvas);
         if (mImage.getMode() == IMGMode.DOODLE && !mPen.isEmpty()) {
             mDoodlePaint.setColor(mPen.getColor());
-            mDoodlePaint.setStrokeWidth(IMGPath.BASE_DOODLE_WIDTH * mImage.getScale());
+            mDoodlePaint.setStrokeWidth(IMGPath.baseDoodleWidth * mImage.getScale());
             canvas.save();
             RectF frame = mImage.getClipFrame();
             canvas.rotate(-mImage.getRotate(), frame.centerX(), frame.centerY());

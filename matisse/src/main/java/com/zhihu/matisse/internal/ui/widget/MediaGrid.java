@@ -34,6 +34,7 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
     private ImageView mThumbnail;
     private CheckView mCheckView;
     private ImageView mGifTag;
+    private ImageView mEditview;
     private TextView mVideoDuration;
 
     private Item mMedia;
@@ -57,8 +58,10 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
         mCheckView = (CheckView) findViewById(R.id.check_view);
         mGifTag = (ImageView) findViewById(R.id.gif);
         mVideoDuration = (TextView) findViewById(R.id.video_duration);
+        mEditview = findViewById(R.id.edit_view);
 
         mThumbnail.setOnClickListener(this);
+        mEditview.setOnClickListener(this);
         mCheckView.setOnClickListener(this);
     }
 
@@ -69,6 +72,8 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
                 mListener.onThumbnailClicked(mThumbnail, mMedia, mPreBindInfo.mViewHolder);
             } else if (v == mCheckView) {
                 mListener.onCheckViewClicked(mCheckView, mMedia, mPreBindInfo.mViewHolder);
+            } else if (v == mEditview) {
+                mListener.onEditViewClicked(mEditview, mMedia, mPreBindInfo.mViewHolder);
             }
         }
     }
@@ -77,12 +82,13 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
         mPreBindInfo = info;
     }
 
-    public void bindMedia(Item item) {
+    public void bindMedia(Item item, boolean editable) {
         mMedia = item;
         setGifTag();
         initCheckView();
         setImage();
         setVideoDuration();
+        setEditViewVisible(editable);
     }
 
     public Item getMedia() {
@@ -91,6 +97,10 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
 
     private void setGifTag() {
         mGifTag.setVisibility(mMedia.isGif() ? View.VISIBLE : View.GONE);
+    }
+
+    private void setEditViewVisible(boolean visible) {
+        mEditview.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     private void initCheckView() {
@@ -111,11 +121,17 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
 
     private void setImage() {
         if (mMedia.isGif()) {
-            SelectionSpec.getInstance().imageEngine.loadGifThumbnail(getContext(), mPreBindInfo.mResize,
-                    mPreBindInfo.mPlaceholder, mThumbnail, mMedia.getContentUri());
+            SelectionSpec.getInstance().imageEngine.loadGifThumbnail(getContext(),
+                                                                     mPreBindInfo.mResize,
+                                                                     mPreBindInfo.mPlaceholder,
+                                                                     mThumbnail,
+                                                                     mMedia.getContentUri());
         } else {
-            SelectionSpec.getInstance().imageEngine.loadThumbnail(getContext(), mPreBindInfo.mResize,
-                    mPreBindInfo.mPlaceholder, mThumbnail, mMedia.getContentUri());
+            SelectionSpec.getInstance().imageEngine.loadThumbnail(getContext(),
+                                                                  mPreBindInfo.mResize,
+                                                                  mPreBindInfo.mPlaceholder,
+                                                                  mThumbnail,
+                                                                  mMedia.getContentUri());
         }
     }
 
@@ -140,6 +156,8 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
 
         void onThumbnailClicked(ImageView thumbnail, Item item, RecyclerView.ViewHolder holder);
 
+        void onEditViewClicked(ImageView editView, Item item, RecyclerView.ViewHolder holder);
+
         void onCheckViewClicked(CheckView checkView, Item item, RecyclerView.ViewHolder holder);
     }
 
@@ -149,8 +167,7 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
         boolean mCheckViewCountable;
         RecyclerView.ViewHolder mViewHolder;
 
-        public PreBindInfo(int resize, Drawable placeholder, boolean checkViewCountable,
-                           RecyclerView.ViewHolder viewHolder) {
+        public PreBindInfo(int resize, Drawable placeholder, boolean checkViewCountable, RecyclerView.ViewHolder viewHolder) {
             mResize = resize;
             mPlaceholder = placeholder;
             mCheckViewCountable = checkViewCountable;
