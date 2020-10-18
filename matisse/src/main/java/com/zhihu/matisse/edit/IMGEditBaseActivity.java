@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import com.zhihu.matisse.R;
@@ -14,14 +15,11 @@ import com.zhihu.matisse.edit.core.IMGText;
 import com.zhihu.matisse.edit.view.IMGColorGroup;
 import com.zhihu.matisse.edit.view.IMGView;
 
-
 /**
  * Created by felix on 2017/12/5 下午3:08.
  */
 
-abstract class IMGEditBaseActivity extends Activity implements View.OnClickListener,
-        IMGTextEditDialog.Callback, RadioGroup.OnCheckedChangeListener,
-        DialogInterface.OnShowListener, DialogInterface.OnDismissListener {
+abstract class IMGEditBaseActivity extends Activity implements View.OnClickListener, IMGTextEditDialog.Callback, RadioGroup.OnCheckedChangeListener, DialogInterface.OnShowListener, DialogInterface.OnDismissListener {
 
     protected IMGView mImgView;
 
@@ -54,7 +52,10 @@ abstract class IMGEditBaseActivity extends Activity implements View.OnClickListe
             initViews();
             mImgView.setImageBitmap(bitmap);
             onCreated();
-        } else finish();
+        } else {
+            Toast.makeText(this, "编辑图片加载失败", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
     public void onCreated() {
