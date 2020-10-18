@@ -29,14 +29,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.widget.PopupMenuCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.Toolbar;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -65,6 +66,8 @@ import com.zhihu.matisse.internal.utils.MediaStoreUtils;
 import com.zhihu.matisse.internal.utils.PathUtils;
 
 import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
+
+import com.zhihu.matisse.internal.utils.SingleMediaScanner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -205,8 +208,7 @@ public class MatisseActivity extends AppCompatActivity implements AlbumCollectio
             Bundle resultBundle = data.getBundleExtra(BasePreviewActivity.EXTRA_RESULT_BUNDLE);
             ArrayList<Item> selected = resultBundle.getParcelableArrayList(SelectedItemCollection.STATE_SELECTION);
             mOriginalEnable = data.getBooleanExtra(BasePreviewActivity.EXTRA_RESULT_ORIGINAL_ENABLE, false);
-            int collectionType = resultBundle.getInt(SelectedItemCollection.STATE_COLLECTION_TYPE,
-                                                     SelectedItemCollection.COLLECTION_UNDEFINED);
+            int collectionType = resultBundle.getInt(SelectedItemCollection.STATE_COLLECTION_TYPE, SelectedItemCollection.COLLECTION_UNDEFINED);
             if (data.getBooleanExtra(BasePreviewActivity.EXTRA_RESULT_APPLY, false)) {
                 Intent result = new Intent();
                 ArrayList<Uri> selectedUris = new ArrayList<>();
@@ -249,8 +251,15 @@ public class MatisseActivity extends AppCompatActivity implements AlbumCollectio
                 result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selected);
                 result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPath);
                 setResult(RESULT_OK, result);
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) MatisseActivity.this.revokeUriPermission(contentUri,
-                                                                                                                   Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+                    MatisseActivity.this.revokeUriPermission(contentUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                new SingleMediaScanner(this.getApplicationContext(), capturePhotoPath, new SingleMediaScanner.ScanListener() {
+                    @Override
+                    public void onScanFinish() {
+                        Log.i("SingleMediaScanner", "scan finish!");
+                    }
+                });
                 finish();
             }
 
@@ -263,15 +272,15 @@ public class MatisseActivity extends AppCompatActivity implements AlbumCollectio
         if (selectedCount == 0) {
             mButtonPreview.setEnabled(false);
             mButtonApply.setEnabled(false);
-            mButtonApply.setText(getString(R.string.button_sure_default));
+            mButtonApply.setText(getString(R.string.button_apply_default));
         } else if (selectedCount == 1 && mSpec.singleSelectionModeEnabled()) {
             mButtonPreview.setEnabled(true);
-            mButtonApply.setText(R.string.button_sure_default);
+            mButtonApply.setText(R.string.button_apply_default);
             mButtonApply.setEnabled(true);
         } else {
             mButtonPreview.setEnabled(true);
             mButtonApply.setEnabled(true);
-            mButtonApply.setText(getString(R.string.button_sure, selectedCount));
+            mButtonApply.setText(getString(R.string.button_apply, selectedCount));
         }
 
         if (mSpec.originalable) {
@@ -288,9 +297,7 @@ public class MatisseActivity extends AppCompatActivity implements AlbumCollectio
         if (countOverMaxSize() > 0) {
 
             if (mOriginalEnable) {
-                IncapableDialog incapableDialog = IncapableDialog.newInstance("",
-                                                                              getString(R.string.error_over_original_size,
-                                                                                        mSpec.originalMaxSize));
+                IncapableDialog incapableDialog = IncapableDialog.newInstance("", getString(R.string.error_over_original_size, mSpec.originalMaxSize));
                 incapableDialog.show(getSupportFragmentManager(), IncapableDialog.class.getName());
 
                 mOriginal.setChecked(false);
@@ -334,10 +341,7 @@ public class MatisseActivity extends AppCompatActivity implements AlbumCollectio
         } else if (v.getId() == R.id.originalLayout) {
             int count = countOverMaxSize();
             if (count > 0) {
-                IncapableDialog incapableDialog = IncapableDialog.newInstance("",
-                                                                              getString(R.string.error_over_original_count,
-                                                                                        count,
-                                                                                        mSpec.originalMaxSize));
+                IncapableDialog incapableDialog = IncapableDialog.newInstance("", getString(R.string.error_over_original_count, count, mSpec.originalMaxSize));
                 incapableDialog.show(getSupportFragmentManager(), IncapableDialog.class.getName());
                 return;
             }

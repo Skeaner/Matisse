@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 
 import com.zhihu.matisse.edit.core.IMGMode;
@@ -24,6 +22,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
  * Created by felix on 2017/11/14 下午2:26.
@@ -182,8 +183,7 @@ public class IMGEditActivity extends IMGEditBaseActivity {
                 try {
                     fout = new FileOutputStream(path);
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 80, fout);
-                    Intent broadcast = new Intent(ACTION_RELOAD_FRAGMENT).putExtra(EXTRA_IMAGE_SAVE_PATH, path)
-                                                                         .putExtra(EXTRA_IMAGE_URI, imageUri);
+                    Intent broadcast = new Intent(ACTION_RELOAD_FRAGMENT).putExtra(EXTRA_IMAGE_SAVE_PATH, path).putExtra(EXTRA_IMAGE_URI, imageUri);
                     LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
                     setResult(RESULT_OK, broadcast);
                     finish();

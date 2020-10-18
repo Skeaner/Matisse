@@ -18,7 +18,7 @@ package com.zhihu.matisse.internal.entity;
 
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
-import android.support.annotation.StyleRes;
+import androidx.annotation.StyleRes;
 
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.R;
@@ -59,6 +59,7 @@ public final class SelectionSpec {
     public OnCheckedListener onCheckedListener;
     public boolean captureToMatisse;
     public boolean editable;
+	public boolean showPreview;
 
     private SelectionSpec() {
     }
@@ -97,6 +98,7 @@ public final class SelectionSpec {
         originalMaxSize = Integer.MAX_VALUE;
         captureToMatisse = false;
         editable = false;
+		showPreview = true;
     }
 
     public boolean singleSelectionModeEnabled() {
@@ -113,6 +115,10 @@ public final class SelectionSpec {
 
     public boolean onlyShowVideos() {
         return showSingleMediaType && MimeType.ofVideo().containsAll(mimeTypeSet);
+    }
+
+    public boolean onlyShowGif() {
+        return showSingleMediaType && MimeType.ofGif().equals(mimeTypeSet);
     }
 
     private static final class InstanceHolder {
