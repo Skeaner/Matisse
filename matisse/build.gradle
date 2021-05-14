@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
 apply plugin: 'checkstyle'
+apply plugin: 'com.github.dcendents.android-maven'
+group='com.github.Skeaner'
+
+
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
+    }
+}
 
 android {
     compileSdkVersion 29
@@ -47,17 +59,6 @@ dependencies {
     compileOnly 'com.squareup.picasso:picasso:2.5.2'
 }
 
-// jcenter configuration for novoda's bintray-release
-// $ ./gradlew clean build bintrayUpload -PbintrayUser=BINTRAY_USERNAME -PbintrayKey=BINTRAY_KEY -PdryRun=false
-publish {
-    userOrg = 'skean'
-    groupId = 'me.skean'
-    artifactId = 'Matisse'
-    publishVersion = '0.5.3-beta3-extend-1.0'
-    desc = 'A well-designed local image selector for Android'
-    website = 'https://gitee.com/skean/Matisse'
-    repository="${website}.git"
-}
 
 task javadoc(type: Javadoc) {
     options.encoding = "utf-8"
