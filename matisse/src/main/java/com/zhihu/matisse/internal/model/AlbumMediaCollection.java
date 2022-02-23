@@ -19,6 +19,7 @@ package com.zhihu.matisse.internal.model;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
@@ -29,14 +30,20 @@ import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.loader.AlbumMediaLoader;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AlbumMediaCollection implements LoaderManager.LoaderCallbacks<Cursor> {
-    private static final int LOADER_ID = 2;
+    private static final AtomicInteger AI = new AtomicInteger(2);
+    private int LOADER_ID;
     private static final String ARGS_ALBUM = "args_album";
     private static final String ARGS_ENABLE_CAPTURE = "args_enable_capture";
     private WeakReference<Context> mContext;
     private LoaderManager mLoaderManager;
     private AlbumMediaCallbacks mCallbacks;
+
+    public AlbumMediaCollection() {
+        LOADER_ID = AI.getAndIncrement();
+    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -50,8 +57,7 @@ public class AlbumMediaCollection implements LoaderManager.LoaderCallbacks<Curso
             return null;
         }
 
-        return AlbumMediaLoader.newInstance(context, album,
-                album.isAll() && args.getBoolean(ARGS_ENABLE_CAPTURE, false));
+        return AlbumMediaLoader.newInstance(context, album, album.isAll() && args.getBoolean(ARGS_ENABLE_CAPTURE, false));
     }
 
     @Override
