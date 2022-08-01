@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -380,9 +381,18 @@ public final class SelectionCreator {
         Fragment fragment = mMatisse.getFragment();
         if (fragment != null) {
             fragment.startActivityForResult(intent, requestCode);
-        } else {
+        }
+        else {
             activity.startActivityForResult(intent, requestCode);
         }
+    }
+
+    public Intent getIntent() {
+        Activity activity = mMatisse.getActivity();
+        if (activity == null) {
+            throw new RuntimeException("activity is null");
+        }
+        return new Intent(activity, MatisseActivity.class);
     }
 
     public SelectionCreator showPreview(boolean showPreview) {
