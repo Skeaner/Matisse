@@ -18,12 +18,17 @@ package com.zhihu.matisse;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.zhihu.matisse.internal.entity.Item;
+import com.zhihu.matisse.internal.ui.PreviewActivity;
 import com.zhihu.matisse.ui.MatisseActivity;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -146,6 +151,47 @@ public final class Matisse {
     @Nullable
     Fragment getFragment() {
         return mFragment != null ? mFragment.get() : null;
+    }
+
+    public void forPreviewFiles(List<File> files) {
+        List<Uri> uris = new ArrayList<>();
+        if (files != null) {
+            for (File file : files) {
+                uris.add(Uri.fromFile(file));
+            }
+            forPreview(uris);
+        }
+    }
+
+    public void forPreviewUrls(List<String> urls) {
+        List<Uri> uris = new ArrayList<>();
+        if (urls != null) {
+            for (String url : urls) {
+                uris.add(Uri.parse(url));
+            }
+            forPreview(uris);
+        }
+    }
+
+    public void forPreview(List<Uri> uris) {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        if (uris != null && uris.size() > 0) {
+            ArrayList<Item> items = new ArrayList<>();
+            for (Uri uri : uris) {
+                items.add(Item.valueOf(uri));
+            }
+            Intent intent = new Intent(activity, PreviewActivity.class).putExtra(PreviewActivity.EXTRA_IMAGES, items);
+            Fragment fragment = getFragment();
+            if (fragment != null) {
+                fragment.startActivity(intent);
+            }
+            else {
+                activity.startActivity(intent);
+            }
+        }
     }
 
 }

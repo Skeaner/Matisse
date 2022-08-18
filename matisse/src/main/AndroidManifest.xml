@@ -29,6 +29,7 @@
             android:name=".edit.IMGEditActivity"
             android:theme="@style/ImageEditTheme"
             android:windowSoftInputMode="stateAlwaysHidden" />
+        <activity android:name=".internal.ui.PreviewActivity" />
 
     </application>
 </manifest>
