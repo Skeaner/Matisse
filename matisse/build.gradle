@@ -82,3 +82,7 @@ task checkstyle(type:Checkstyle) {
     classpath = files()
     source 'src/main/java'
 }
+
+/****以下是本地打包脚本, 终端执行gradlew install, 打包完成在/用户文件夹/.m2/repository里面****/
+apply from: 'punish_local.gradle'
+
